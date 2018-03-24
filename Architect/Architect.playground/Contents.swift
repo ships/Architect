@@ -46,7 +46,6 @@ indirect enum Architect {
 
     static func build(viewController: UIViewController, from architecture: Architect) {
         constructor(superView: viewController.view, architecture: architecture)
-
     }
 
     private static func constructor(superView: UIView, architecture: Architect) {
@@ -93,22 +92,21 @@ indirect enum Architect {
                 if case .blueprint(let arch) = architect {
                     let subView = viewForArchitect(arch)
                     constructor(superView: subView, architecture: arch)
-                    stack?.addSubview(subView)
+                    stack?.addArrangedSubview(subView)
                     return result + [subView]
                 }else if case .custom(let view) = architect {
-                    stack?.addSubview(view)
+                    stack?.addArrangedSubview(view)
                     return result + [view]
                 } else {
                     let subView = viewForArchitect(architect)
                     constructor(superView: subView, architecture: architect)
-                    stack?.addSubview(subView)
+                    stack?.addArrangedSubview(subView)
                     return result + [subView]
                 }
             })
             plans?(views)
         case .blueprint(let arch):
             let subView = viewForArchitect(arch)
-            constructor(superView: subView, architecture:arch)
             if case .custom = arch {
                superView.addSubview(subView)
             }else {
@@ -125,7 +123,7 @@ indirect enum Architect {
         case .view, .viewController: return UIView()
         case .stackView: return UIStackView()
         case .blueprint(let arch): return viewForArchitect(arch)
-        case .custom(let view, _, _): return view
+        case .custom(let view): return view
         default:return UIView()
         }
     }
@@ -138,17 +136,48 @@ class DesignedController: UIViewController {
 
 }
 
+
+class PCircularView: UIView {
+
+
+    // Only override draw() if you perform custom drawing.
+    // An empty implementation adversely affects performance during animation.
+    override func draw(_ rect: CGRect) {
+        // Drawing code
+        super.draw(rect)
+        maskToCircle()
+    }
+
+    override init(frame: CGRect) {
+        super.init(frame: frame)
+        backgroundColor = .white
+    }
+
+    required init?(coder aDecoder: NSCoder) {
+        super.init(coder: aDecoder)
+    }
+
+    func maskToCircle() {
+        self.contentMode = .scaleAspectFill
+        self.clipsToBounds = true
+
+        let maskLayer = CAShapeLayer()
+        let mask = UIBezierPath(ovalIn: self.bounds)
+        maskLayer.backgroundColor = UIColor.clear.cgColor
+        maskLayer.path = mask.cgPath
+        self.layer.mask = maskLayer
+    }
+
+
+}
+
 extension DesignedController: BluePrint {
 
 
     var other : Architect {
         return .stackView(
             {[
-                .view({[]})
-                {views in
-                    views[0].backgroundColor = .white
-
-                },
+                .custom(PCircularView(frame: CGRect.init(origin: .zero, size: CGSize(width:40, height:40)))),
                 .view({[]})
                 {views in
                     views[0].backgroundColor = .white
