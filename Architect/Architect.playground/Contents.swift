@@ -38,7 +38,7 @@ indirect enum Architect {
     case pickerView(ArchitectQuery,LayoutCommands?)
     case progressView(ArchitectQuery,LayoutCommands?)
     case webView(ArchitectQuery,LayoutCommands?)
-    case custom(AnyClass,ArchitectQuery,LayoutCommands?)
+    case custom(UIView)
     case blueprint(Architect)
     case label(ArchitectQuery,LayoutCommands?)
     case textView(ArchitectQuery,LayoutCommands?)
@@ -53,106 +53,85 @@ indirect enum Architect {
         switch architecture {
         case .viewController(let proxyViews, let plans):
             let views = proxyViews().reduce([superView], {result, architect in
-                let subView = viewForArchitect(architect) ?? result[0]
-                constructor(superView: subView, architecture: architect)
-                result[0].addSubview(subView)
-                return result + [subView]
+                if case .blueprint(let arch) = architect {
+                    let subView = viewForArchitect(arch)
+                    constructor(superView: subView, architecture: arch)
+                    result[0].addSubview(subView)
+                    return result + [subView]
+                }else if case .custom(let view) = architect {
+                    result[0].addSubview(view)
+                    return result + [view]
+                } else {
+                    let subView = viewForArchitect(architect)
+                    constructor(superView: subView, architecture: architect)
+                    result[0].addSubview(subView)
+                    return result + [subView]
+                }
             })
             plans?(views)
         case .view(let proxyViews, let plans):
             let views = proxyViews().reduce([superView], { result, architect in
-                let subView = viewForArchitect(architect) ?? result[0]
-                constructor(superView: subView, architecture: architect)
-                result[0].addSubview(subView)
-                return result + [subView]
+                if case .blueprint(let arch) = architect {
+                    let subView = viewForArchitect(arch)
+                    constructor(superView: subView, architecture: arch)
+                    result[0].addSubview(subView)
+                    return result + [subView]
+                }else if case .custom(let view) = architect {
+                    result[0].addSubview(view)
+                    return result + [view]
+                } else {
+                    let subView = viewForArchitect(architect)
+                    constructor(superView: subView, architecture: architect)
+                    result[0].addSubview(subView)
+                    return result + [subView]
+                }
             })
             plans?(views)
         case .stackView(let query, let plans):
             let views = query().reduce([superView], { result, architect in
                 let stack = result[0] as? UIStackView
-                let subView = viewForArchitect(architect) ?? result[0]
-                constructor(superView: subView, architecture: architect)
-                stack?.addArrangedSubview(subView)
-                return result + [subView]
+                if case .blueprint(let arch) = architect {
+                    let subView = viewForArchitect(arch)
+                    constructor(superView: subView, architecture: arch)
+                    stack?.addSubview(subView)
+                    return result + [subView]
+                }else if case .custom(let view) = architect {
+                    stack?.addSubview(view)
+                    return result + [view]
+                } else {
+                    let subView = viewForArchitect(architect)
+                    constructor(superView: subView, architecture: architect)
+                    stack?.addSubview(subView)
+                    return result + [subView]
+                }
             })
             plans?(views)
         case .blueprint(let arch):
-            return constructor(superView: superView, architecture:arch)
+            let subView = viewForArchitect(arch)
+            constructor(superView: subView, architecture:arch)
+            if case .custom = arch {
+               superView.addSubview(subView)
+            }else {
+                constructor(superView: subView, architecture:arch)
+                superView.addSubview(subView)
+            }
+        case .custom: return //The superview is me and the architecture is custom; nothing to do
         default:break
         }
     }
 
-    private static func viewForArchitect(_ architect: Architect) -> UIView? {
+    private static func viewForArchitect(_ architect: Architect) -> UIView {
         switch architect {
-        case .view, .viewController:return UIView()
+        case .view, .viewController: return UIView()
         case .stackView: return UIStackView()
-        case .blueprint: return nil
+        case .blueprint(let arch): return viewForArchitect(arch)
+        case .custom(let view, _, _): return view
         default:return UIView()
         }
     }
 }
 
 typealias BluePrintConvertible = AnyObject & BluePrint
-
-let controller = Architect.viewController({[
-    .view({[]})
-    { views in
-        views[0].backgroundColor = .blue
-
-    },
-    .view({[]})
-    {views in
-        views[0].backgroundColor = .red
-    },
-    .stackView(
-        {[
-        .view({[]})
-        {views in
-            views[0].backgroundColor = .white
-
-        },
-        .view({[]})
-        {views in
-            views[0].backgroundColor = .white
-        }]
-    })
-    { views in
-        let stack = (views[0] as! UIStackView)
-        stack.axis = .vertical
-        stack.spacing = 10
-        stack.distribution = .fillEqually
-    }
-    ]})
-{ views in
-    views[0].backgroundColor = .white
-    constrain(views[0], views[1], block: { parent, view in
-        view.left == parent.left + 10
-        view.right == parent.right - 10
-        view.top == parent.top + 10
-        view.bottom == parent.bottom - 10
-    })
-
-    constrain(views[0], views[2]) { parent, view in
-        view.left == parent.left + 20
-        view.right == parent.right - 20
-        view.top == parent.top + 20
-        view.bottom == parent.bottom - 20
-    }
-
-    constrain(views[0], views[3]) { parent, view in
-        view.left == parent.left + 30
-        view.right == parent.right - 30
-        view.top == parent.top + 30
-        view.bottom == parent.bottom - 30
-    }
-}
-
-
-class fakeButton : UIButton {
-
-
-}
-
 
 class DesignedController: UIViewController {
 
@@ -194,7 +173,7 @@ extension DesignedController: BluePrint {
             {views in
                 views[0].backgroundColor = .red
             },
-            .blueprint(other)
+            .blueprint(self.other)
             ]})
         { views in
             views[0].backgroundColor = .white
@@ -228,6 +207,7 @@ extension DesignedController: BluePrint {
 let viewController = DesignedController()
 
 Architect.build(viewController: viewController, from: viewController.blueprint)
+
 
 PlaygroundPage.current.liveView = viewController
 
