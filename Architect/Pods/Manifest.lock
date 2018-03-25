@@ -1,12 +1,18 @@
 PODS:
   - Cartography (3.0.1)
+  - Nimble (7.0.3)
+  - Quick (1.2.0)
 
 DEPENDENCIES:
   - Cartography
+  - Nimble
+  - Quick
 
 SPEC CHECKSUMS:
   Cartography: f8c899bb0f5cf20758644a8eea59a75e98a03a5d
+  Nimble: 7f5a9c447a33002645a071bddafbfb24ea70e0ac
+  Quick: 58d203b1c5e27fff7229c4c1ae445ad7069a7a08
 
-PODFILE CHECKSUM: 404da31473abf36bcabd037d66e73ef4d934180a
+PODFILE CHECKSUM: 5840f22bdad79bd84c1fa09cfacdddd95c031b69
 
 COCOAPODS: 1.4.0

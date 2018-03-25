@@ -1,0 +1,6 @@
+framework module Pods_Architect_ArchitectTests {
+  umbrella header "Pods-Architect-ArchitectTests-umbrella.h"
+
+  export *
+  module * { export * }
+}

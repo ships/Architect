@@ -9,12 +9,11 @@
 import Foundation
 import UIKit
 
-typealias LayoutCommands = ([UIView]) -> ()
+public typealias LayoutCommands = ([UIView]) -> ()
 
-typealias ArchitectQuery = () -> ([Architect])
+public typealias ArchitectQuery = () -> ([Architect])
 
 indirect public enum Architect {
-    case viewController(ArchitectQuery, LayoutCommands?)
     case view(ArchitectQuery, LayoutCommands?)
     case stackView(ArchitectQuery, LayoutCommands?)
     case scrollView(ArchitectQuery, LayoutCommands?)
@@ -139,17 +138,12 @@ extension Architect {
         case textfield: return UITextField()
         }
     }
-
-
 }
-
-
 
 extension Architect {
 
     var instructions : (ArchitectQuery, LayoutCommands?) {
         switch self {
-        case .viewController(let query, let plans): return (query,plans)
         case .view(let query, let plans): return (query,plans)
         case .stackView(let query, let plans): return (query,plans)
         case .scrollView(let query, let plans): return (query,plans)
