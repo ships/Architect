@@ -9,11 +9,6 @@
 import Foundation
 import UIKit
 
-protocol BluePrint {
-
-    var blueprint : Architect {get}
-}
-
 typealias LayoutCommands = ([UIView]) -> ()
 
 typealias ArchitectQuery = () -> ([Architect])
@@ -49,9 +44,6 @@ indirect public enum Architect {
 
 extension Architect {
 
-
-    //TO DO:
-    //How to make sure that viewControllers are added correctly
     static public func build(viewController: UIViewController, from architecture: Architect) {
         constructor(superView: viewController.view, architecture: architecture)
     }
@@ -119,14 +111,32 @@ extension Architect {
     }
 
 
-    //TO DO:
     static func viewForArchitect(_ architect: Architect) -> UIView {
         switch architect {
-        case .view, .viewController: return UIView()
+        case .view: return UIView()
         case .stackView: return UIStackView()
         case .blueprint(let arch): return viewForArchitect(arch)
-        case .custom(let view): return view//Custom view controllers?
-        default:return UIView()
+        case .custom(let view): return view
+        case scrollView: return UIScrollView()
+        case collectionView: return UICollectionView()
+        case tableView: return UITableView()
+        case activityIndicator: return UIActivityIndicatorView()
+        case control: return UIControl()
+        case button: return UIButton()
+        case segmentedControl: return UISegmentedControl()
+        case slider: return UISlider()
+        case stepper: return UIStepper()
+        case uiswitch: return UISwitch()
+        case pageControl: return UIPageControl()
+        case datePicker: return UIDatePicker()
+        case visualEffectView: return UIVisualEffectView()
+        case imageView: return UIImageView()
+        case pickerView: return UIPickerView()
+        case progressView: return UIProgressView()
+        case webView: return UIWebView()
+        case label: return UILabel()
+        case textView: return UITextView()
+        case textfield: return UITextField()
         }
     }
 

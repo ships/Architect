@@ -18,7 +18,6 @@ typealias LayoutCommands = ([UIView]) -> ()
 typealias ArchitectQuery = () -> ([Architect])
 indirect enum Architect {
 
-    case viewController(ArchitectQuery, LayoutCommands?)
     case view(ArchitectQuery, LayoutCommands?)
     case stackView(ArchitectQuery, LayoutCommands?)
     case scrollView(ArchitectQuery, LayoutCommands?)
@@ -112,18 +111,36 @@ indirect enum Architect {
 
     private static func viewForArchitect(_ architect: Architect) -> UIView {
         switch architect {
-        case .view, .viewController: return UIView()
+        case .view: return UIView()
         case .stackView: return UIStackView()
         case .blueprint(let arch): return viewForArchitect(arch)
         case .custom(let view): return view
-        default:return UIView()
+        case scrollView: return UIScrollView()
+        case collectionView: return UICollectionView()
+        case tableView: return UITableView()
+        case activityIndicator: return UIActivityIndicatorView()
+        case control: return UIControl()
+        case button: return UIButton()
+        case segmentedControl: return UISegmentedControl()
+        case slider: return UISlider()
+        case stepper: return UIStepper()
+        case uiswitch: return UISwitch()
+        case pageControl: return UIPageControl()
+        case datePicker: return UIDatePicker()
+        case visualEffectView: return UIVisualEffectView()
+        case imageView: return UIImageView()
+        case pickerView: return UIPickerView()
+        case progressView: return UIProgressView()
+        case webView: return UIWebView()
+        case label: return UILabel()
+        case textView: return UITextView()
+        case textfield: return UITextField()
         }
     }
 
 
     private var instructions : (ArchitectQuery, LayoutCommands?) {
         switch self {
-        case .viewController(let query, let plans): return (query,plans)
         case .view(let query, let plans): return (query,plans)
         case .stackView(let query, let plans): return (query,plans)
         case .scrollView(let query, let plans): return (query,plans)
@@ -215,7 +232,7 @@ extension DesignedController: BluePrint {
     }
 
     var blueprint : Architect {
-        return .viewController({[
+        return .view({[
             .view({[]})
             { views in
                 views[0].backgroundColor = .blue
