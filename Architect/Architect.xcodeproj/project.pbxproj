@@ -8,7 +8,6 @@
 
 /* Begin PBXBuildFile section */
 		6DBC4D0420644C820005FFC8 /* Architect.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6DBC4D0320644C820005FFC8 /* Architect.swift */; };
-		6DE28143206688C900F2B20E /* CircularView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6DE28142206688C900F2B20E /* CircularView.swift */; };
 		6DF487822063482800052866 /* Architect.h in Headers */ = {isa = PBXBuildFile; fileRef = 6DF487802063482800052866 /* Architect.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		F7599A7B3A20F0AF24362436 /* Pods_Architect.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 97267A071F1C83FB3538BCCA /* Pods_Architect.framework */; };
 /* End PBXBuildFile section */
@@ -16,7 +15,6 @@
 /* Begin PBXFileReference section */
 		17C71118E4FEEF06AAE652EE /* Pods-Architect.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Architect.release.xcconfig"; path = "Pods/Target Support Files/Pods-Architect/Pods-Architect.release.xcconfig"; sourceTree = "<group>"; };
 		6DBC4D0320644C820005FFC8 /* Architect.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Architect.swift; sourceTree = "<group>"; };
-		6DE28142206688C900F2B20E /* CircularView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CircularView.swift; sourceTree = "<group>"; };
 		6DF4877D2063482800052866 /* Architect.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Architect.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		6DF487802063482800052866 /* Architect.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Architect.h; sourceTree = "<group>"; };
 		6DF487812063482800052866 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
@@ -60,7 +58,6 @@
 				6DF487802063482800052866 /* Architect.h */,
 				6DF487812063482800052866 /* Info.plist */,
 				6DBC4D0320644C820005FFC8 /* Architect.swift */,
-				6DE28142206688C900F2B20E /* CircularView.swift */,
 			);
 			path = Architect;
 			sourceTree = "<group>";
@@ -201,7 +198,6 @@
 			buildActionMask = 2147483647;
 			files = (
 				6DBC4D0420644C820005FFC8 /* Architect.swift in Sources */,
-				6DE28143206688C900F2B20E /* CircularView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

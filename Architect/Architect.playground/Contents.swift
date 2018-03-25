@@ -48,44 +48,12 @@ indirect enum Architect {
         constructor(superView: viewController.view, architecture: architecture)
     }
 
+    static func build(view: UIView, from architecture: Architect) {
+        constructor(superView: view, architecture: architecture)
+    }
+
     private static func constructor(superView: UIView, architecture: Architect) {
         switch architecture {
-        case .viewController(let proxyViews, let plans):
-            let views = proxyViews().reduce([superView], {result, architect in
-                if case .blueprint(let arch) = architect {
-                    let subView = viewForArchitect(arch)
-                    constructor(superView: subView, architecture: arch)
-                    result[0].addSubview(subView)
-                    return result + [subView]
-                }else if case .custom(let view) = architect {
-                    result[0].addSubview(view)
-                    return result + [view]
-                } else {
-                    let subView = viewForArchitect(architect)
-                    constructor(superView: subView, architecture: architect)
-                    result[0].addSubview(subView)
-                    return result + [subView]
-                }
-            })
-            plans?(views)
-        case .view(let proxyViews, let plans):
-            let views = proxyViews().reduce([superView], { result, architect in
-                if case .blueprint(let arch) = architect {
-                    let subView = viewForArchitect(arch)
-                    constructor(superView: subView, architecture: arch)
-                    result[0].addSubview(subView)
-                    return result + [subView]
-                }else if case .custom(let view) = architect {
-                    result[0].addSubview(view)
-                    return result + [view]
-                } else {
-                    let subView = viewForArchitect(architect)
-                    constructor(superView: subView, architecture: architect)
-                    result[0].addSubview(subView)
-                    return result + [subView]
-                }
-            })
-            plans?(views)
         case .stackView(let query, let plans):
             let views = query().reduce([superView], { result, architect in
                 let stack = result[0] as? UIStackView
@@ -114,8 +82,32 @@ indirect enum Architect {
                 superView.addSubview(subView)
             }
         case .custom: return //The superview is me and the architecture is custom; nothing to do
-        default:break
+        default:
+            let query = architecture.instructions.0
+            let plans = architecture.instructions.1
+            let views = constructorHelper(superView: superView, query: query)
+            plans?(views)
         }
+    }
+
+
+    private static func constructorHelper(superView: UIView, query: ArchitectQuery) -> [UIView] {
+        return query().reduce([superView], { result, architect in
+            if case .blueprint(let arch) = architect {
+                let subView = viewForArchitect(arch)
+                constructor(superView: subView, architecture: arch)
+                result[0].addSubview(subView)
+                return result + [subView]
+            }else if case .custom(let view) = architect {
+                result[0].addSubview(view)
+                return result + [view]
+            } else {
+                let subView = viewForArchitect(architect)
+                constructor(superView: subView, architecture: architect)
+                result[0].addSubview(subView)
+                return result + [subView]
+            }
+        })
     }
 
     private static func viewForArchitect(_ architect: Architect) -> UIView {
@@ -125,6 +117,37 @@ indirect enum Architect {
         case .blueprint(let arch): return viewForArchitect(arch)
         case .custom(let view): return view
         default:return UIView()
+        }
+    }
+
+
+    private var instructions : (ArchitectQuery, LayoutCommands?) {
+        switch self {
+        case .viewController(let query, let plans): return (query,plans)
+        case .view(let query, let plans): return (query,plans)
+        case .stackView(let query, let plans): return (query,plans)
+        case .scrollView(let query, let plans): return (query,plans)
+        case .collectionView(let query, let plans): return (query,plans)
+        case .tableView(let query, let plans): return (query,plans)
+        case .activityIndicator(let query, let plans): return (query,plans)
+        case .control(let query, let plans): return (query,plans)
+        case .button(let query, let plans): return (query,plans)
+        case .segmentedControl(let query, let plans): return (query,plans)
+        case .slider(let query, let plans): return (query,plans)
+        case .stepper(let query, let plans): return (query,plans)
+        case .uiswitch(let query, let plans): return (query,plans)
+        case .pageControl(let query, let plans): return (query,plans)
+        case .datePicker(let query, let plans): return (query,plans)
+        case .visualEffectView(let query, let plans): return (query,plans)
+        case .imageView(let query, let plans): return (query,plans)
+        case .pickerView(let query, let plans): return (query,plans)
+        case .progressView(let query, let plans): return (query,plans)
+        case .webView(let query, let plans): return (query,plans)
+        case .label(let query, let plans): return (query,plans)
+        case .textView(let query, let plans): return (query,plans)
+        case .textfield(let query, let plans): return (query,plans)
+        default:
+            fatalError("Blueprint and custom do not have instructions therefore they can't be used. This could also be an unhandled case please be sure to handle all cases with query and plans")
         }
     }
 }
