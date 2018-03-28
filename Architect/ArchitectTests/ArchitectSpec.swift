@@ -2,7 +2,7 @@
 //  ArchitectSpec.swift
 //  Architect
 //
-//  Created by Storybook Developer Axandre Oge on 3/25/18.
+//  Created by Axandre Oge on 3/25/18.
 //Copyright © 2018 oge. All rights reserved.
 //
 
