@@ -33,7 +33,7 @@ indirect public enum Architect {
     case pickerView(ArchitectQuery,LayoutCommands?)
     case progressView(ArchitectQuery,LayoutCommands?)
     case webView(ArchitectQuery,LayoutCommands?)
-    case custom(UIView)
+    case custom(UIView, ArchitectQuery?, LayoutCommands?)
     case blueprint(Architect)
     case label(ArchitectQuery,LayoutCommands?)
     case textView(ArchitectQuery,LayoutCommands?)
@@ -61,7 +61,8 @@ extension Architect {
                     constructor(superView: subView, architecture: arch)
                     stack?.addArrangedSubview(subView)
                     return result + [subView]
-                }else if case .custom(let view) = architect {
+                }else if case .custom(let view, _, _) = architect {
+                    constructor(superView: view, architecture: architect)
                     stack?.addArrangedSubview(view)
                     return result + [view]
                 } else {
@@ -73,14 +74,23 @@ extension Architect {
             })
             plans?(views)
         case .blueprint(let arch):
-            let subView = viewForArchitect(arch)
-            if case .custom = arch {
-                superView.addSubview(subView)
+            if case .custom(let view, _, _) = arch {
+                constructor(superView: view, architecture: arch)
+                superView.addSubview(view)
             }else {
+                let subView = viewForArchitect(arch)
                 constructor(superView: subView, architecture:arch)
                 superView.addSubview(subView)
             }
-        case .custom: return //The superview is me and the architecture is custom; nothing to do
+        case .custom(let view, let query, let plans):
+            //Custom is the only query that does not add anything to
+            //subview
+            if let q = query {
+                let views = constructorHelper(superView: view, query: q)
+                plans?(views)
+            }else {
+                plans?([superView])
+            }
         default:
             let query = architecture.instructions.0
             let plans = architecture.instructions.1
@@ -97,7 +107,8 @@ extension Architect {
                 constructor(superView: subView, architecture: arch)
                 result[0].addSubview(subView)
                 return result + [subView]
-            }else if case .custom(let view) = architect {
+            }else if case .custom(let view, _ ,_) = architect {
+                constructor(superView: view, architecture: architect)
                 result[0].addSubview(view)
                 return result + [view]
             } else {
@@ -115,7 +126,7 @@ extension Architect {
         case .view: return UIView()
         case .stackView: return UIStackView()
         case .blueprint(let arch): return viewForArchitect(arch)
-        case .custom(let view): return view
+        case .custom(let view, _, _): return view
         case scrollView: return UIScrollView()
         case collectionView: return UICollectionView()
         case tableView: return UITableView()
@@ -166,6 +177,7 @@ extension Architect {
         case .label(let query, let plans): return (query,plans)
         case .textView(let query, let plans): return (query,plans)
         case .textfield(let query, let plans): return (query,plans)
+        case .custom(_, let query?, let plans): return (query,plans)
         default:
             fatalError("Blueprint and custom do not have instructions therefore they can't be used. This could also be an unhandled case please be sure to handle all cases with query and plans")
         }

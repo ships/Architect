@@ -13,11 +13,11 @@ protocol BluePrint {
     var blueprint : Architect {get}
 }
 
-typealias LayoutCommands = ([UIView]) -> ()
+public typealias LayoutCommands = ([UIView]) -> ()
 
-typealias ArchitectQuery = () -> ([Architect])
-indirect enum Architect {
+public typealias ArchitectQuery = () -> ([Architect])
 
+indirect public enum Architect {
     case view(ArchitectQuery, LayoutCommands?)
     case stackView(ArchitectQuery, LayoutCommands?)
     case scrollView(ArchitectQuery, LayoutCommands?)
@@ -37,21 +37,25 @@ indirect enum Architect {
     case pickerView(ArchitectQuery,LayoutCommands?)
     case progressView(ArchitectQuery,LayoutCommands?)
     case webView(ArchitectQuery,LayoutCommands?)
-    case custom(UIView)
+    case custom(UIView, ArchitectQuery?, LayoutCommands?)
     case blueprint(Architect)
     case label(ArchitectQuery,LayoutCommands?)
     case textView(ArchitectQuery,LayoutCommands?)
     case textfield(ArchitectQuery,LayoutCommands?)
 
-    static func build(viewController: UIViewController, from architecture: Architect) {
+}
+
+extension Architect {
+
+    static public func build(viewController: UIViewController, from architecture: Architect) {
         constructor(superView: viewController.view, architecture: architecture)
     }
 
-    static func build(view: UIView, from architecture: Architect) {
+    static public func build(view: UIView, from architecture: Architect) {
         constructor(superView: view, architecture: architecture)
     }
 
-    private static func constructor(superView: UIView, architecture: Architect) {
+    static func constructor(superView: UIView, architecture: Architect) {
         switch architecture {
         case .stackView(let query, let plans):
             let views = query().reduce([superView], { result, architect in
@@ -61,7 +65,8 @@ indirect enum Architect {
                     constructor(superView: subView, architecture: arch)
                     stack?.addArrangedSubview(subView)
                     return result + [subView]
-                }else if case .custom(let view) = architect {
+                }else if case .custom(let view, _, _) = architect {
+                    constructor(superView: view, architecture: architect)
                     stack?.addArrangedSubview(view)
                     return result + [view]
                 } else {
@@ -73,14 +78,23 @@ indirect enum Architect {
             })
             plans?(views)
         case .blueprint(let arch):
-            let subView = viewForArchitect(arch)
-            if case .custom = arch {
-               superView.addSubview(subView)
+            if case .custom(let view, _, _) = arch {
+                constructor(superView: view, architecture: arch)
+                superView.addSubview(view)
             }else {
+                let subView = viewForArchitect(arch)
                 constructor(superView: subView, architecture:arch)
                 superView.addSubview(subView)
             }
-        case .custom: return //The superview is me and the architecture is custom; nothing to do
+        case .custom(let view, let query, let plans):
+            //Custom is the only query that does not add anything to
+            //subview
+            if let q = query {
+                let views = constructorHelper(superView: view, query: q)
+                plans?(views)
+            }else {
+                plans?([superView])
+            }
         default:
             let query = architecture.instructions.0
             let plans = architecture.instructions.1
@@ -90,14 +104,15 @@ indirect enum Architect {
     }
 
 
-    private static func constructorHelper(superView: UIView, query: ArchitectQuery) -> [UIView] {
+    static func constructorHelper(superView: UIView, query: ArchitectQuery) -> [UIView] {
         return query().reduce([superView], { result, architect in
             if case .blueprint(let arch) = architect {
                 let subView = viewForArchitect(arch)
                 constructor(superView: subView, architecture: arch)
                 result[0].addSubview(subView)
                 return result + [subView]
-            }else if case .custom(let view) = architect {
+            }else if case .custom(let view, _ ,_) = architect {
+                constructor(superView: view, architecture: architect)
                 result[0].addSubview(view)
                 return result + [view]
             } else {
@@ -109,12 +124,13 @@ indirect enum Architect {
         })
     }
 
-    private static func viewForArchitect(_ architect: Architect) -> UIView {
+
+    static func viewForArchitect(_ architect: Architect) -> UIView {
         switch architect {
         case .view: return UIView()
         case .stackView: return UIStackView()
         case .blueprint(let arch): return viewForArchitect(arch)
-        case .custom(let view): return view
+        case .custom(let view, _, _): return view
         case scrollView: return UIScrollView()
         case collectionView: return UICollectionView()
         case tableView: return UITableView()
@@ -137,9 +153,11 @@ indirect enum Architect {
         case textfield: return UITextField()
         }
     }
+}
 
+extension Architect {
 
-    private var instructions : (ArchitectQuery, LayoutCommands?) {
+    var instructions : (ArchitectQuery, LayoutCommands?) {
         switch self {
         case .view(let query, let plans): return (query,plans)
         case .stackView(let query, let plans): return (query,plans)
@@ -163,10 +181,12 @@ indirect enum Architect {
         case .label(let query, let plans): return (query,plans)
         case .textView(let query, let plans): return (query,plans)
         case .textfield(let query, let plans): return (query,plans)
+        case .custom(_, let query?, let plans): return (query,plans)
         default:
             fatalError("Blueprint and custom do not have instructions therefore they can't be used. This could also be an unhandled case please be sure to handle all cases with query and plans")
         }
     }
+
 }
 
 typealias BluePrintConvertible = AnyObject & BluePrint
@@ -198,14 +218,8 @@ class PCircularView: UIView {
     }
 
     func maskToCircle() {
-        self.contentMode = .scaleAspectFill
-        self.clipsToBounds = true
-
-        let maskLayer = CAShapeLayer()
-        let mask = UIBezierPath(ovalIn: self.bounds)
-        maskLayer.backgroundColor = UIColor.clear.cgColor
-        maskLayer.path = mask.cgPath
-        self.layer.mask = maskLayer
+        self.layer.cornerRadius = frame.height / 2
+        self.layer.masksToBounds = true
     }
 
 
@@ -217,7 +231,24 @@ extension DesignedController: BluePrint {
     var other : Architect {
         return .stackView(
             {[
-                .custom(PCircularView(frame: CGRect.init(origin: .zero, size: CGSize(width:40, height:40)))),
+                .custom(PCircularView(frame: CGRect.init(origin: .zero, size: CGSize(width:40, height:40))),
+                        {[
+                            .view({[]}, nil)
+
+                            ]})
+                { views in
+                    views[1].backgroundColor = .blue
+
+                    constrain(views[0], views[1], block: { custom, view in
+                        view.centerX == custom.centerX
+                        view.centerY == custom.centerY
+                    })
+
+                    constrain(views[1], block: { view in
+                        view.height == 30
+                        view.width == 30
+                    })
+                },
                 .view({[]})
                 {views in
                     views[0].backgroundColor = .white
