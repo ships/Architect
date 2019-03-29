@@ -16,7 +16,7 @@ Pod::Spec.new do |s|
   #
 
   s.name         = "Architect"
-  s.version      = "0.1.0"
+  s.version      = "0.2.0"
   s.summary      = "Architect is a lightweight library for structuring layout code."
 
   # This description is used to generate tags and improve search results.
@@ -26,7 +26,7 @@ Pod::Spec.new do |s|
   #   * Finally, don't worry about the indent, CocoaPods strips it!
   # s.description  = "Library for structuring layout code"
 
-  s.homepage     = "https://github.com/aoge123/Architect"
+  s.homepage     = "https://github.com/ships/Architect"
   # s.screenshots  = "www.example.com/screenshots_1.gif", "www.example.com/screenshots_2.gif"
 
 
@@ -79,7 +79,7 @@ Pod::Spec.new do |s|
   #  Supports git, hg, bzr, svn and HTTP.
   #
 
-  s.source       = { :git => "https://github.com/aoge123/Architect.git", :tag => "v#{s.version}" }
+  s.source       = { :git => "https://github.com/ships/Architect.git", :tag => "v#{s.version}" }
 
 
 
